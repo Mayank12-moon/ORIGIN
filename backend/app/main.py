@@ -1,18 +1,30 @@
 import logging
+import os
 from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Any
+
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+
 from .analytics import summary
 from .cache import trace_cache
 from .data_loader import load_all, index_by_transaction, ensure_data
 from .models import TraceQuery, TraceResult
 from .reasoner import explain
-from .trace_engine import trace_transaction, transaction_ids_for_date, transaction_ids_for_date_range
+from .trace_engine import (
+    trace_transaction,
+    transaction_ids_for_date,
+    transaction_ids_for_date_range,
+)
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(name)s | %(message)s")
+# Logging Setup
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+)
 logger = logging.getLogger("settlement-qa")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -22,27 +34,56 @@ async def lifespan(app: FastAPI):
     yield
     # Shutdown logic (if any) can go here
 
+
 app = FastAPI(title="Settlement Q&A Agent", version="1.0.0", lifespan=lifespan)
 
-# Allow cross-origin requests from Vercel frontend
+# ------------------------------------------------------------------
+# CORS Configuration
+# ------------------------------------------------------------------
+origins = [
+    "https://origin-seven-sigma.vercel.app",  # Production Vercel domain
+    "http://localhost:3000",                  # Local Web testing
+    "http://localhost:5173",                  # Local Vite testing
+    "http://localhost:8080",                  # Local Flutter Web testing
+    "*",                                      # Wildcard for broad cross-origin compatibility
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+
+# ------------------------------------------------------------------
+# Health & Status Endpoints
+# ------------------------------------------------------------------
 @app.get("/")
 def read_root():
     return {
         "status": "ok",
         "service": "Settlement Q&A Agent API",
         "docs_url": "/docs",
-        "health_check": "/health"
+        "health_check": "/health",
     }
 
-async def get_trace(tx):
+
+@app.get("/health")
+def health():
+    ensure_data()
+    return {
+        "status": "ok",
+        "service": "settlement-qa-agent",
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+    }
+
+
+# ------------------------------------------------------------------
+# Service Helpers & API Routes
+# ------------------------------------------------------------------
+async def get_trace(tx: str):
     cached = trace_cache.get(tx)
     if cached:
         return cached
@@ -53,14 +94,6 @@ async def get_trace(tx):
     trace_cache.set(tx, tr)
     return tr
 
-@app.get("/health")
-def health():
-    ensure_data()
-    return {
-        "status": "ok",
-        "service": "settlement-qa-agent",
-        "timestamp": datetime.utcnow().isoformat() + "Z"
-    }
 
 @app.get("/transactions")
 def transactions(
@@ -69,7 +102,7 @@ def transactions(
     status: str | None = None,
     merchant_id: str | None = None,
     page: int = Query(1, ge=1),
-    page_size: int = Query(25, ge=1, le=100)
+    page_size: int = Query(25, ge=1, le=100),
 ):
     src = load_all()
     idx = {k: index_by_transaction(v) for k, v in src.items()}
@@ -96,21 +129,23 @@ def transactions(
             "ledger_status": l.get("ledger_status") if l else None,
             "overall_status": tr.overall_status,
             "gateway_timestamp": g.get("gateway_timestamp") if g else None,
-            "settlement_date": b.get("settlement_date") if b else None
+            "settlement_date": b.get("settlement_date") if b else None,
         })
     total = len(items)
     start = (page - 1) * page_size
     return {
-        "items": items[start:start + page_size],
+        "items": items[start : start + page_size],
         "page": page,
         "page_size": page_size,
         "total": total,
-        "pages": (total + page_size - 1) // page_size
+        "pages": (total + page_size - 1) // page_size,
     }
+
 
 @app.get("/trace/{transaction_id}", response_model=TraceResult)
 async def trace(transaction_id: str):
     return await get_trace(transaction_id)
+
 
 @app.post("/trace/query")
 async def trace_query(q: TraceQuery):
@@ -121,10 +156,21 @@ async def trace_query(q: TraceQuery):
         return {
             "date": q.date,
             "count": len(ids),
-            "results": [(await get_trace(x)).model_dump() for x in ids]
+            "results": [(await get_trace(x)).model_dump() for x in ids],
         }
     raise HTTPException(400, "Provide transaction_id or date.")
+
 
 @app.get("/analytics/summary")
 def analytics_summary():
     return summary()
+
+
+# ------------------------------------------------------------------
+# Entry Point
+# ------------------------------------------------------------------
+if __name__ == "__main__":
+    import uvicorn
+
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=True)
