@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .analytics import summary
 from .cache import trace_cache
-from .data_loader import load_all, index_by_transaction, ensure_data
+from .data_loader import ensure_data, index_by_transaction, load_all
 from .models import TraceQuery, TraceResult
 from .reasoner import explain
 from .trace_engine import (
@@ -41,17 +41,18 @@ app = FastAPI(title="Settlement Q&A Agent", version="1.0.0", lifespan=lifespan)
 # CORS Configuration
 # ------------------------------------------------------------------
 origins = [
-    "https://origin-seven-sigma.vercel.app",  # Production Vercel domain
+    "https://origin-seven-sigma.vercel.app",  # Production Vercel domain 1
+    "https://origin-2nkk.vercel.app",         # Production Vercel domain 2
     "http://localhost:3000",                  # Local Web testing
     "http://localhost:5173",                  # Local Vite testing
     "http://localhost:8080",                  # Local Flutter Web testing
-    "*",                                      # Wildcard for broad cross-origin compatibility
+    "*",                                      # Wildcard for broad compatibility
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_credentials=True,
+    allow_credentials=False,  # Set to False when wildcard "*" is active in origins
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -173,4 +174,4 @@ if __name__ == "__main__":
     import uvicorn
 
     port = int(os.getenv("PORT", 8000))
-    uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
