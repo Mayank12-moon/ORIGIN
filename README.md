@@ -1,21 +1,24 @@
 <div align="center">
-  <h1>🌌 Welcome to Origin</h1>
+
+  <!-- Animated Typing Title -->
+  <a href="https://git.io/typing-svg">
+    <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=32&pause=1000&color=00E6E6&center=true&vCenter=true&width=800&lines=Welcome+to+Origin;Intelligent+Payment+Settlement;Automated+Ledger+Reconciliation" alt="Typing SVG" />
+  </a>
   
   <p><strong>🚀 Intelligent Payment Settlement & Reconciliation Dashboard</strong></p>
 
-  <h2 style="color: #00e6e6;">Welcome to Origin</h2>
-  
-  <p>---</p>
+  <img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/aqua.png" alt="Animated line divider">
 
   <h2>💻 Application Preview</h2>
 
   <h3>Origin – Trace Settlement Dashboard</h3>
   
-  <img src="image_efcfb0.jpg" alt="Origin Application Preview" width="800">
+  <!-- Image linked directly from your screenshot folder path -->
+  <img src="screenshot/WhatsApp%20Image%202026-09-05%20at%205.59.51%20AM.jpeg" alt="Origin Application Preview" width="850" style="border-radius: 10px; box-shadow: 0 8px 24px rgba(0,230,230,0.2);">
   
   <p><b>Origin Home Screen – Track trace pipelines, monitor gateway-bank-ledger settlements, and resolve financial exceptions through a clean and intuitive interface.</b></p>
   
-  <hr>
+  <img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/aqua.png" alt="Animated line divider">
 
   <p>
     <img src="https://img.shields.io/badge/LICENSE-NOT_SPECIFIED-gray?style=for-the-badge" alt="License">
@@ -24,6 +27,7 @@
     <img src="https://img.shields.io/badge/ISSUES-0_OPEN-brightgreen?style=for-the-badge" alt="Issues">
   </p>
 
+  <!-- Interactive Tech Stack Icons with Hover Effects -->
   <p>
     <a href="https://reactjs.org/"><img src="https://img.shields.io/badge/REACT-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React"></a>
     <a href="https://nodejs.org/"><img src="https://img.shields.io/badge/NODE.JS-43853D?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js"></a>
@@ -40,7 +44,7 @@
   <p>Origin empowers finance teams to effortlessly track payment settlements while enabling automated exception handling, intelligent routing, and real-time ledger monitoring.</p>
 </div>
 
-<hr>
+<br>
 
 ## 📑 Table of Contents
 
